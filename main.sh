@@ -19,7 +19,13 @@ block_ICMP() {
     # Add the new line to block ICMP (ping) requests
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
 }
-
+change_ssh_port() {
+        CURRENT_PORT=$(grep -E '^(#Port |Port )' "$SSHD_CONFIG_FILE")
+        sudo sed -i -E 's/^(#Port |Port )[0-9]+/Port 64999/' "$SSHD_CONFIG_FILE"
+        echo "SSH Port has been updated to Port 64999"
+        sudo systemctl restart sshd
+        sudo service ssh restart
+}
 fail2ban() {
     apt-get install -y fail2ban
     # Configure SSH protection
@@ -87,7 +93,7 @@ menu() {
         echo "9) Exit"
         read -p "Enter your choice: " choice
         case $choice in
-        1) fail2ban; block_udp; block_ICMP; block_port_scanning; echo " All configurations activated";;
+        1) fail2ban; block_udp; block_ICMP; block_port_scanning; change_ssh_port; echo " All configurations activated";;
         2) remove_configurations;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
