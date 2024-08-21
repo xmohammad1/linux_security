@@ -77,9 +77,6 @@ remove_configurations() {
     sed -i '/net.ipv4.icmp_echo_ignore_all = 1/d' /etc/sysctl.conf
     sysctl -p
     echo "ICMP echo requests are no longer blocked."
-    iptables -D INPUT -m state --state NEW -p tcp --tcp-flags ALL ALL -j DROP
-    iptables -D INPUT -m state --state NEW -p tcp --tcp-flags ALL NONE -j DROP
-    echo "Block Port scanning remove"
 }
 
 menu() {
