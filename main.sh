@@ -11,9 +11,9 @@ block_udp() {
 block_ICMP() {
     # Remove any existing line with 'net.ipv4.icmp_echo_ignore_all'
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
-    
     # Add the new line to block ICMP (ping) requests
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
+    sysctl -p
 }
 change_ssh_port() {
         SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
