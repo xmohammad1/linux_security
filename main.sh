@@ -29,7 +29,7 @@ enabled = true
 port = ssh
 filter = sshd
 logpath = /var/log/auth.log
-maxretry = 5
+maxretry = 3
 bantime = 3600
 EOT
 
