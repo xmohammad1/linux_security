@@ -20,7 +20,6 @@ block_ICMP() {
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
 }
 change_ssh_port() {
-        CURRENT_PORT=$(grep -E '^(#Port |Port )' "$SSHD_CONFIG_FILE")
         sudo sed -i -E 's/^(#Port |Port )[0-9]+/Port 64999/' "$SSHD_CONFIG_FILE"
         echo "SSH Port has been updated to Port 64999"
         sudo systemctl restart sshd
