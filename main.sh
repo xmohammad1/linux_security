@@ -1,5 +1,8 @@
 #!/bin/bash
-
+block_port_scanning() {
+    iptables -A INPUT -m state --state NEW -p tcp --tcp-flags ALL ALL -j DROP
+    iptables -A INPUT -m state --state NEW -p tcp --tcp-flags ALL NONE -j DROP
+}
 block_udp() {
     # Allow DNS UDP traffic on port 53
     iptables -A INPUT -p udp --dport 53 -j ACCEPT
@@ -81,7 +84,7 @@ menu() {
         echo "9) Exit"
         read -p "Enter your choice: " choice
         case $choice in
-        1) fail2ban; block_udp; block_ICMP; echo " All configurations activated";;
+        1) fail2ban; block_udp; block_ICMP; block_port_scanning; echo " All configurations activated";;
         2) remove_configurations;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
