@@ -21,6 +21,7 @@ change_ssh_port() {
         echo "SSH Port has been updated to Port 64999"
         sudo systemctl restart sshd
         sudo service ssh restart
+        ufw allow 64999
 }
 fail2ban() {
     apt-get install -y fail2ban
