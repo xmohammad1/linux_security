@@ -14,12 +14,19 @@ block_ICMP() {
     sysctl -p
 }
 change_ssh_port() {
-        SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
-        sudo sed -i -E 's/^(#Port |Port )[0-9]+/Port 64999/' "$SSHD_CONFIG_FILE"
-        echo "SSH Port has been updated to Port 64999"
-        sudo systemctl restart sshd
-        sudo service ssh restart
-        ufw allow 64999
+    SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
+
+    # Try to replace an existing Port line, if it exists
+    if grep -qE '^#?[[:space:]]*Port[[:space:]]*[0-9]+' "$SSHD_CONFIG_FILE"; then
+        sed -i -E 's/^#?[[:space:]]*Port[[:space:]]*[0-9]+/Port 64999/' "$SSHD_CONFIG_FILE"
+    else
+        # If no Port line exists, append a new Port line
+        echo "Port 64999" >> "$SSHD_CONFIG_FILE"
+    fi
+
+    echo "SSH Port has been updated to Port 64999"
+    systemctl restart sshd
+    ufw allow 64999
 }
 fail2ban() {
     apt-get install -y fail2ban
