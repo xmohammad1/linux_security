@@ -66,7 +66,6 @@ remove_configurations() {
     # Remove UDP block rule
     iptables -D INPUT -p udp -j DROP
     iptables-save > /etc/iptables/rules.v4
-    echo "UDP block rule removed."
 
     # Unblock ICMP (ping)
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
