@@ -23,10 +23,9 @@ change_ssh_port() {
         # If no Port line exists, append a new Port line
         echo "Port 64999" >> "$SSHD_CONFIG_FILE"
     fi
-
-    echo "SSH Port has been updated to Port 64999"
     systemctl restart sshd
     ufw allow 64999
+    echo "SSH Port has been updated to Port 64999"
 }
 fail2ban() {
     apt-get install -y fail2ban
