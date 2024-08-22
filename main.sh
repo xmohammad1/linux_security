@@ -1,5 +1,9 @@
 #!/bin/bash
-
+# Ensure the script is run as root
+if [[ "$EUID" -ne 0 ]]; then
+    echo "Please run as root."
+    exit 1
+fi
 block_ICMP() {
     # Remove any existing line with 'net.ipv4.icmp_echo_ignore_all'
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
