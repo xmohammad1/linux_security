@@ -40,26 +40,6 @@ maxretry = 3
 bantime = 3600
 EOT
 
-    # Configure HTTP protection (basic DDoS mitigation)
-    cat <<EOT >> /etc/fail2ban/jail.local
-[http-get-dos]
-enabled = true
-port = http,https
-filter = http-get-dos
-logpath = /var/log/apache2/access.log
-maxretry = 300
-findtime = 300
-bantime = 3600
-action = iptables[name=HTTP, port=http, protocol=tcp]
-EOT
-
-    # Create the filter for HTTP GET requests (basic DDoS mitigation)
-    cat <<EOT > /etc/fail2ban/filter.d/http-get-dos.conf
-[Definition]
-failregex = ^<HOST> -.*"(GET|POST).*
-ignoreregex =
-EOT
-
     # Restart Fail2Ban to apply configurations
     systemctl restart fail2ban
     systemctl enable fail2ban
