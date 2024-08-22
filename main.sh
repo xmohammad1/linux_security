@@ -50,7 +50,7 @@ remove_configurations() {
     systemctl stop fail2ban
     systemctl disable fail2ban
     apt-get remove --purge -y fail2ban
-    rm -f /etc/fail2ban/jail.local /etc/fail2ban/filter.d/http-get-dos.conf
+    rm -f /etc/fail2ban/jail.local
     echo "Fail2Ban and its configurations have been removed."
 
     # Remove UDP block rule
