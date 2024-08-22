@@ -3,8 +3,10 @@
 block_ICMP() {
     # Remove any existing line with 'net.ipv4.icmp_echo_ignore_all'
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
+    sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
     # Add the new line to block ICMP (ping) requests
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
+    echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
     sysctl -p
 }
 change_ssh_port() {
@@ -67,7 +69,8 @@ remove_configurations() {
     echo "UDP block rule removed."
 
     # Unblock ICMP (ping)
-    sed -i '/net.ipv4.icmp_echo_ignore_all = 1/d' /etc/sysctl.conf
+    sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
+    sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
     sysctl -p
     echo "ICMP echo requests are no longer blocked."
 }
