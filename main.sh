@@ -77,7 +77,7 @@ remove_configurations() {
 
 menu() {
     while true; do
-        echo "1) configure Anti DDoS script (Fail2ban ,UDP Block, Block ICMP)"
+        echo "1) configure Anti DDoS script (Fail2ban , Block ICMP)"
         echo "2) remove all configurations"
         echo "9) Exit"
         read -p "Enter your choice: " choice
