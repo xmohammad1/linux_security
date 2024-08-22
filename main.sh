@@ -87,7 +87,7 @@ menu() {
         echo "9) Exit"
         read -p "Enter your choice: " choice
         case $choice in
-        1) block_udp; block_ICMP; change_ssh_port; echo " All configurations activated";;
+        1) fail2ban; block_ICMP; change_ssh_port; echo " All configurations activated";;
         2) remove_configurations;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
