@@ -1,12 +1,4 @@
 #!/bin/bash
-block_udp() {
-    # Allow DNS UDP traffic on port 53
-    iptables -A INPUT -p udp --dport 53 -j ACCEPT
-    # Block all other UDP traffic
-    iptables -A INPUT -p udp -j DROP
-    # Save the iptables rules
-    iptables-save > /etc/iptables/rules.v4
-}
 
 block_ICMP() {
     # Remove any existing line with 'net.ipv4.icmp_echo_ignore_all'
