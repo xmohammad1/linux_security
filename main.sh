@@ -72,7 +72,7 @@ menu() {
         read -p "Enter your choice: " choice
         case $choice in
         1) fail2ban; block_ICMP; change_ssh_port; echo " All configurations activated"; exit 1;;
-        2) remove_configurations;;
+        2) remove_configurations; exit 1;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
     esac
