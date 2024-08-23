@@ -60,6 +60,8 @@ remove_configurations() {
     # Unblock ICMP (ping)
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
     sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
+    echo "net.ipv4.icmp_echo_ignore_all = 0" >> /etc/sysctl.conf
+    echo "net.ipv4.icmp_echo_ignore_broadcasts = 0" >> /etc/sysctl.conf
     sysctl -p
     echo "ICMP echo requests are no longer blocked."
 }
