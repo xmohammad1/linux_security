@@ -65,16 +65,23 @@ remove_configurations() {
     sysctl -p
     echo "ICMP echo requests are no longer blocked."
 }
-
+block_ip_ranges() {
+    bash <(curl -LS https://raw.githubusercontent.com/xmohammad1/linux_security/refs/heads/main/ip.sh) 1
+}
+white_list_ip() {
+    bash <(curl -LS https://raw.githubusercontent.com/xmohammad1/linux_security/refs/heads/main/ip.sh) 2
+}
 menu() {
     while true; do
         echo "1) configure Anti DDoS script (Fail2ban , Block ICMP)"
         echo "2) remove all configurations"
+        echo "3) white list a ip address/range"
         echo "9) Exit"
         read -p "Enter your choice: " choice
         case $choice in
-        1) fail2ban; block_ICMP; change_ssh_port; echo " All configurations activated"; exit 1;;
+        1) fail2ban; block_ICMP; change_ssh_port; block_ip_ranges; echo " All configurations activated"; exit 1;;
         2) remove_configurations; exit 1;;
+        3) white_list_ip; exit 1;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
     esac
