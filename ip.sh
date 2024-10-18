@@ -219,9 +219,15 @@ fi
 # Main script execution
 check_requirements
 
-while true; do
-    show_menu
-    read -rp "Please choose an option [1-4]: " choice
-    echo
+if [ -n "$1" ]; then
+    choice="$1"
+    clear
     handle_menu_choice "$choice"
-done
+else
+    while true; do
+        show_menu
+        read -rp "Please choose an option [1-4]: " choice
+        echo
+        handle_menu_choice "$choice"
+    done
+fi
