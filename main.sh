@@ -73,7 +73,7 @@ white_list_ip() {
 }
 menu() {
     while true; do
-        echo "1) configure Anti DDoS script (Fail2ban , Block ICMP)"
+        echo "1) configure Anti DDoS script [Fail2ban , Block ICMP && Private Ranges]"
         echo "2) remove all configurations"
         echo "3) white list a ip address/range"
         echo "9) Exit"
