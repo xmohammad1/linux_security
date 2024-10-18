@@ -206,8 +206,6 @@ handle_menu_choice() {
             echo -e "${RED}Invalid option. Please select a number between 1 and 4.${NC}"
             ;;
     esac
-    echo -e "${YELLOW}Press Enter to return to the menu...${NC}"
-    read -r
 }
 
 # Check for superuser privileges
@@ -221,7 +219,6 @@ check_requirements
 
 if [ -n "$1" ]; then
     choice="$1"
-    clear
     handle_menu_choice "$choice"
 else
     while true; do
