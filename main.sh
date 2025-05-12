@@ -4,6 +4,7 @@ if [[ "$EUID" -ne 0 ]]; then
     echo "Please run as root."
     exit 1
 fi
+NEW_SSH_PORT="64999"
 block_ICMP() {
     # Remove any existing line with 'net.ipv4.icmp_echo_ignore_all'
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
@@ -13,50 +14,46 @@ block_ICMP() {
     echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
     sysctl -p
 }
-change_ssh_port() {
+change_ssh_port_and_firewall() {
+    local target_port="$1"
     SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
+    local current_port_config
 
-    # Try to replace an existing Port line, if it exists
+    echo "Changing SSH port to $target_port..."
+
+    # دریافت پورت فعلی پیکربندی‌شده برای حذف قانون UFW آن در صورت نیاز
+    current_port_config=$(grep -E "^[[:space:]]*Port[[:space:]]+[0-9]+" "$SSHD_CONFIG_FILE" | awk '{print $2}' | tail -n 1)
+
+    # تغییر یا افزودن خط پورت در sshd_config
     if grep -qE '^#?[[:space:]]*Port[[:space:]]*[0-9]+' "$SSHD_CONFIG_FILE"; then
-        sed -i -E 's/^#?[[:space:]]*Port[[:space:]]*[0-9]+/Port 64999/' "$SSHD_CONFIG_FILE"
+        sed -i -E "s/^#?[[:space:]]*Port[[:space:]]*[0-9]+/Port $target_port/" "$SSHD_CONFIG_FILE"
     else
-        # If no Port line exists, append a new Port line
-        echo "Port 64999" >> "$SSHD_CONFIG_FILE"
+        echo -e "\nPort $target_port" >> "$SSHD_CONFIG_FILE" # افزودن خط جدید اگر وجود نداشته باشد
     fi
-    systemctl restart sshd
-    ufw allow 64999
-    echo "SSH Port has been updated to Port 64999"
-}
-fail2ban() {
-    apt-get install -y fail2ban
-    # Configure SSH protection
-    cat <<EOT > /etc/fail2ban/jail.local
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-logpath = /var/log/auth.log
-maxretry = 3
-bantime = 3600
-EOT
 
-    # Restart Fail2Ban to apply configurations
-    systemctl restart fail2ban
-    systemctl enable fail2ban
+    echo "Attempting to restart SSH service..."
+    if systemctl restart ssh.service; then
+        echo "SSH service restarted successfully (using ssh.service)."
+    elif systemctl restart sshd.service; then
+        echo "SSH service restarted successfully (using sshd.service)." # به عنوان پشتیبان
+    else
+        echo "ERROR: Failed to restart SSH service. Please check 'systemctl status ssh' or 'systemctl status sshd' and restart it manually."
+        echo "The SSH port was changed in $SSHD_CONFIG_FILE to $target_port, but the service may not have applied the new config."
+        # در اینجا می‌توانید اجرای اسکریپت را متوقف کنید یا یک کد خطا برگردانید
+    fi
+
+    echo "Updating UFW firewall rules..."
+    # حذف قانون قدیمی اگر پورت قبلی مشخص و متفاوت از پورت جدید و پورت 22 بود
+    if [[ -n "$current_port_config" && "$current_port_config" != "22" && "$current_port_config" != "$target_port" ]]; then
+        echo "Removing old UFW rule for port $current_port_config/tcp (if it exists)."
+        ufw delete allow "$current_port_config/tcp"
+    fi
+    ufw allow "$target_port"
+    ufw reload # اعمال تغییرات UFW
+    echo "SSH port has been updated to Port $target_port and firewall configured."
 }
 
 remove_configurations() {
-    # Remove the Fail2Ban package and its configurations
-    systemctl stop fail2ban
-    systemctl disable fail2ban
-    apt-get remove --purge -y fail2ban
-    rm -f /etc/fail2ban/jail.local
-    echo "Fail2Ban and its configurations have been removed."
-
-    # Remove UDP block rule
-    iptables -D INPUT -p udp -j DROP
-    iptables-save > /etc/iptables/rules.v4
-
     # Unblock ICMP (ping)
     sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
     sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
@@ -76,14 +73,23 @@ ip_manager_script() {
 }
 menu() {
     while true; do
-        echo "1) configure Anti DDoS script [Fail2ban , Block ICMP && Private Ranges]"
+        echo "1) configure Anti DDoS script [Block ICMP && Private Ranges]"
         echo "2) remove all configurations"
         echo "3) white list a ip address/range"
         echo "4) IP Blocker Manager"
         echo "9) Exit"
         read -p "Enter your choice: " choice
         case $choice in
-        1) fail2ban; block_ICMP; change_ssh_port; block_ip_ranges; echo " All configurations activated"; exit 1;;
+        1)
+            echo "Starting configuration process..."
+            change_ssh_port_and_firewall "$NEW_SSH_PORT"
+            block_ICMP
+            block_ip_ranges
+            echo ""
+            echo "All configurations applied successfully."
+            echo "IMPORTANT: SSH port has been changed to $NEW_SSH_PORT."
+            exit 0
+            ;;
         2) remove_configurations; exit 1;;
         3) white_list_ip; exit 1;;
         4) ip_manager_script;;
