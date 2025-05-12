@@ -86,7 +86,7 @@ menu() {
         1) fail2ban; block_ICMP; change_ssh_port; block_ip_ranges; echo " All configurations activated"; exit 1;;
         2) remove_configurations; exit 1;;
         3) white_list_ip; exit 1;;
-        4) ip_manager_script; exit 1;;
+        4) ip_manager_script;;
         9) exit;;
         *) echo "Invalid option. Please try again.";;
     esac
