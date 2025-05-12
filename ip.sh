@@ -153,7 +153,28 @@ whitelist_ip_range() {
         echo -e "${YELLOW}Outgoing traffic to $ip_range is already whitelisted.${NC}"
     fi
 }
-
+remove_blocked_ip_ranges() {
+    for ip_range in "${IP_RANGES[@]}"; do
+        if iptables -C INPUT -s "$ip_range" -j DROP &>/dev/null; then
+            iptables -D INPUT -s "$ip_range" -j DROP
+            echo -e "${GREEN}Blocking rule for $ip_range in INPUT has been removed${NC}"
+        else
+            echo -e "${YELLOW}No blocking rule found for $ip_range in INPUT${NC}"
+        fi
+        if iptables -C FORWARD -s "$ip_range" -j DROP &>/dev/null; then
+            iptables -D FORWARD -s "$ip_range" -j DROP
+            echo -e "${GREEN}Blocking rule for $ip_range in FORWARD has been removed${NC}"
+        else
+            echo -e "${YELLOW}No blocking rule found for $ip_range in FORWARD${NC}"
+        fi
+        if iptables -C OUTPUT -d "$ip_range" -j DROP &>/dev/null; then
+            iptables -D OUTPUT -d "$ip_range" -j DROP
+            echo -e "${GREEN}Blocking rule for $ip_range in OUTPUT has been removed${NC}"
+        else
+            echo -e "${YELLOW}No blocking rule found for $ip_range in OUTPUT${NC}"
+        fi
+    done
+}
 # Function to display the menu
 show_menu() {
     clear
@@ -165,7 +186,8 @@ show_menu() {
     echo -e "${GREEN}1.${NC} Block predefined IP ranges"
     echo -e "${GREEN}2.${NC} Whitelist an IP or range"
     echo -e "${GREEN}3.${NC} View current iptables rules"
-    echo -e "${GREEN}4.${NC} Exit"
+    echo -e "${GREEN}4.${NC} Remove all iptables rules"
+    echo -e "${GREEN}5.${NC} Exit"
     echo
 }
 
@@ -199,6 +221,14 @@ handle_menu_choice() {
             iptables -L -n -v --line-numbers | less
             ;;
         4)
+            read -rp "Are you sure you want to clear all iptables rules? (y/n): " confirm
+            if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                remove_blocked_ip_ranges
+            else
+                echo -e "${YELLOW}Operation cancelled.${NC}"
+            fi
+            ;;
+        5)
             echo -e "${BLUE}Exiting the script.${NC}"
             exit 0
             ;;
@@ -223,7 +253,7 @@ if [ -n "$1" ]; then
 else
     while true; do
         show_menu
-        read -rp "Please choose an option [1-4]: " choice
+        read -rp "Please choose an option [1-5]: " choice
         echo
         handle_menu_choice "$choice"
     done
