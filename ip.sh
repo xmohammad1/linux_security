@@ -229,7 +229,6 @@ handle_menu_choice() {
             fi
             ;;
         5)
-            echo -e "${BLUE}Exiting the script.${NC}"
             exit 0
             ;;
         *)
