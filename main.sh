@@ -71,7 +71,7 @@ block_ip_ranges() {
 white_list_ip() {
     bash <(curl -LS https://raw.githubusercontent.com/xmohammad1/linux_security/refs/heads/main/ip.sh) 2
 }
-remove_blocked_ip_ranges{
+remove_blocked_ip_ranges() {
     bash <(curl -LS https://raw.githubusercontent.com/xmohammad1/linux_security/refs/heads/main/ip.sh) 4
 }
 menu() {
