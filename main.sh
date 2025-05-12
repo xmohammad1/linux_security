@@ -73,8 +73,8 @@ ip_manager_script() {
 }
 menu() {
     while true; do
-        echo "1) configure Anti DDoS script [Block ICMP && Private Ranges]"
-        echo "2) remove all configurations"
+        echo "1) configure Anti Abuse script [Block ICMP && Private Ranges]"
+        echo "2) remove configurations"
         echo "3) white list a ip address/range"
         echo "4) IP Blocker Manager"
         echo "9) Exit"
