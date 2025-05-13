@@ -140,6 +140,7 @@ whitelist_ip_range() {
     # Allow forwarded traffic
     if ! iptables -C FORWARD -s "$ip_range" -j ACCEPT &>/dev/null; then
         iptables -I FORWARD -s "$ip_range" -j ACCEPT
+        iptables -I FORWARD -d "$ip_range" -j ACCEPT
         echo -e "${GREEN}Whitelisted forwarded traffic from $ip_range${NC}"
     else
         echo -e "${YELLOW}Forwarded traffic from $ip_range is already whitelisted.${NC}"
