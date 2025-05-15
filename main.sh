@@ -63,18 +63,6 @@ change_ssh_port_and_firewall() {
         fi
     fi
 
-    # Determine current SSH port from listening ports for firewall update
-    echo -e "\n\033[1;34m=== Firewall Configuration ===\033[0m"
-    current_port_config=$(ss -ltp 2>/dev/null | awk '/LISTEN/ && (/systemd/ || /sshd/) {print $4}' | grep -oE ':[0-9]+' | cut -c2- | sort -u | head -n1)
-    if [[ -z "$current_port_config" ]]; then
-        current_port_config=22
-    fi
-
-    if [[ "$current_port_config" != "22" && "$current_port_config" != "$target_port" ]]; then
-        echo -e "Removing legacy firewall rule for port \033[33m$current_port_config\033[0m/tcp"
-        ufw delete allow "$current_port_config/tcp"
-    fi
-
     ufw allow "$target_port/tcp"
     ufw reload
     echo -e "\033[1;32m✔ Complete:\033[0m Firewall updated for new SSH port \033[1;33m$target_port\033[0m"
