@@ -17,7 +17,6 @@ block_ICMP() {
 change_ssh_port_and_firewall() {
     local target_port="$1"
     SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
-    local current_port_config
 
     echo -e "\n\033[1;34m=== SSH Port Configuration ===\033[0m"
     echo -e "Updating SSH port to \033[1;33m$target_port\033[0m..."
