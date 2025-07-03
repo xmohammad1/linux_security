@@ -61,6 +61,22 @@ check_requirements() {
         echo -e "${GREEN}iptables is already installed.${NC}"
     fi
 }
+# Function to check and install ufw if needed
+check_ufw() {
+    if ! command -v ufw &>/dev/null; then
+        echo -e "${YELLOW}ufw is not installed. Installing...${NC}"
+        if [ -x "$(command -v apt-get)" ]; then
+            sudo apt-get update
+            sudo apt-get install -y ufw
+        elif [ -x "$(command -v yum)" ]; then
+            sudo yum install -y ufw
+        else
+            echo -e "${RED}Package manager not found. Please install ufw manually.${NC}"
+            exit 1
+        fi
+        echo -e "${GREEN}ufw installed successfully.${NC}"
+    fi
+}
 
 # Function to validate IP address or CIDR notation
 validate_ip_range() {
@@ -159,6 +175,53 @@ remove_blocked_ip_ranges() {
         fi
     done
 }
+# Return a unique list of "proto port" currently in LISTEN state
+get_listening_ports() {
+    # ss سریع‌تر و روی اکثر توزیع‌ها موجود است؛ به‌عنوان پشتیبان از netstat استفاده می‌کنیم
+    if command -v ss &>/dev/null; then
+        ss -tulnH | awk '
+            {
+                split($5, a, ":"); port=a[length(a)];
+                if (port != "*" && port != "") {
+                    proto=tolower($1);   # tcp یا udp
+                    print proto, port
+                }
+            }' | sort -u
+    else
+        netstat -tuln | awk '
+            NR>2 {
+                proto=tolower($1);
+                split($4,a,":"); port=a[length(a)];
+                if (port != "*" && port != "") print proto, port
+            }' | sort -u
+    fi
+}
+enable_ufw_interactive() {
+    local current_status
+    current_status=$(ufw status | grep -Eo "Status: .*" | awk '{print $2}')
+    echo
+    read -rp "UFW is currently ${current_status:-unknown}. Enable UFW? (y/n) [y]: " resp
+    resp=${resp:-y}
+
+    if [[ $resp =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}Allowing all ports currently in use...${NC}"
+        local entry proto port
+        while read -r proto port; do
+            if ufw status numbered | grep -qw "$port/$proto"; then
+                echo -e "${YELLOW}Port $port/$proto already allowed.${NC}"
+            else
+                ufw allow "$port/$proto"
+                echo -e "${GREEN}Allowed $port/$proto${NC}"
+            fi
+        done < <(get_listening_ports)
+
+        echo -e "${BLUE}Enabling UFW...${NC}"
+        ufw --force enable
+        echo -e "${GREEN}UFW is now enabled with current services whitelisted.${NC}"
+    else
+        echo -e "${YELLOW}UFW was left disabled by user choice.${NC}"
+    fi
+}
 # Function to display the menu
 show_menu() {
     clear
@@ -174,13 +237,26 @@ show_menu() {
     echo -e "${GREEN}5.${NC} Exit"
     echo
 }
-
+# Main script execution
+check_requirements
 # Function to handle menu selection
 handle_menu_choice() {
     local choice="$1"
     case $choice in
         1)
             echo -e "${BLUE}Blocking predefined IP ranges...${NC}"
+            read -p "Configure UFW? [y/n] " answer
+            
+            case "$answer" in
+              [Yy]* )
+                echo "Blocking ICMP…"
+                check_ufw
+                enable_ufw_interactive
+                ;;
+              * )
+                echo "Aborted."
+                ;;
+            esac
             for ip_range in "${IP_RANGES[@]}"; do
                 block_ip_range "$ip_range" || continue
             done
@@ -227,8 +303,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Main script execution
-check_requirements
 
 if [ -n "$1" ]; then
     choice="$1"
