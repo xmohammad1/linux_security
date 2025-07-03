@@ -103,7 +103,15 @@ menu() {
         case $choice in
             1)
                 echo -e "\n\033[1;35m=== Applying System Hardening ===\033[0m"
-                change_ssh_port_and_firewall "$NEW_SSH_PORT"
+                read -p "do you want to change ssh port? [y/N] " answer1
+                case "$answer1" in
+                  [Yy]* )
+                    change_ssh_port_and_firewall "$NEW_SSH_PORT"
+                    ;;
+                  * )
+                    echo "Aborted."
+                    ;;
+                esac
                 read -p "Are you sure you want to run block_ICMP? [y/N] " answer
                 
                 case "$answer" in
