@@ -200,27 +200,21 @@ enable_ufw_interactive() {
     local current_status
     current_status=$(ufw status | grep -Eo "Status: .*" | awk '{print $2}')
     echo
-    read -rp "UFW is currently ${current_status:-unknown}. Enable UFW? (y/n) [y]: " resp
-    resp=${resp:-y}
 
-    if [[ $resp =~ ^[Yy]$ ]]; then
-        echo -e "${BLUE}Allowing all ports currently in use...${NC}"
-        local entry proto port
-        while read -r proto port; do
-            if ufw status numbered | grep -qw "$port/$proto"; then
-                echo -e "${YELLOW}Port $port/$proto already allowed.${NC}"
-            else
-                ufw allow "$port/$proto"
-                echo -e "${GREEN}Allowed $port/$proto${NC}"
-            fi
-        done < <(get_listening_ports)
+    echo -e "${BLUE}Allowing all ports currently in use...${NC}"
+    local entry proto port
+    while read -r proto port; do
+        if ufw status numbered | grep -qw "$port/$proto"; then
+            echo -e "${YELLOW}Port $port/$proto already allowed.${NC}"
+        else
+            ufw allow "$port/$proto"
+            echo -e "${GREEN}Allowed $port/$proto${NC}"
+        fi
+    done < <(get_listening_ports)
 
-        echo -e "${BLUE}Enabling UFW...${NC}"
-        ufw --force enable
-        echo -e "${GREEN}UFW is now enabled with current services whitelisted.${NC}"
-    else
-        echo -e "${YELLOW}UFW was left disabled by user choice.${NC}"
-    fi
+    echo -e "${BLUE}Enabling UFW...${NC}"
+    ufw --force enable
+    echo -e "${GREEN}UFW is now enabled with current services whitelisted.${NC}"
 }
 # Function to display the menu
 show_menu() {
