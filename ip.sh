@@ -249,7 +249,6 @@ handle_menu_choice() {
             
             case "$answer" in
               [Yy]* )
-                echo "Blocking ICMP…"
                 check_ufw
                 enable_ufw_interactive
                 ;;
