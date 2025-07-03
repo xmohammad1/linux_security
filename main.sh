@@ -104,7 +104,17 @@ menu() {
             1)
                 echo -e "\n\033[1;35m=== Applying System Hardening ===\033[0m"
                 change_ssh_port_and_firewall "$NEW_SSH_PORT"
-                block_ICMP
+                read -p "Are you sure you want to run block_ICMP? [y/N] " answer
+                
+                case "$answer" in
+                  [Yy]* )
+                    echo "Blocking ICMP…"
+                    block_ICMP
+                    ;;
+                  * )
+                    echo "Aborted."
+                    ;;
+                esac
                 block_ip_ranges
                 echo -e "\n\033[1;32m=== Hardening Complete ===\033[0m"
                 echo -e "All security configurations applied successfully"
