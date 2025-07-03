@@ -19,29 +19,45 @@ NC='\033[0m' # No Color
 # List of IP ranges to block
 IP_RANGES=(
     "10.0.0.0/8"
-    "100.64.0.0/10"
-    "169.254.0.0/16"
     "172.16.0.0/12"
-    "192.0.0.0/24"
-    "192.0.2.0/24"
-    "192.88.99.0/24"
     "192.168.0.0/16"
+    "100.64.0.0/10"
     "198.18.0.0/15"
-    "198.51.100.0/24"
-    "203.0.113.0/24"
-    "240.0.0.0/24"
-    "224.0.0.0/4"
-    "233.252.0.0/24"
-    "102.0.0.0/8"
-    "185.235.86.0/24"
-    "185.235.87.0/24"
-    "114.208.187.0/24"
+    "240.0.0.0/4"
+    "192.0.0.0/24"
+    "102.195.124.0/24"
+    "102.130.88.0/24"
+    "102.65.81.0/24"
+    "102.193.10.0/24"
+    "151.139.128.0/24"
+    "205.185.208.0/24"
+    "185.121.225.0/24"
+    "102.214.134.0/24"
+    "89.35.131.0/24"
+    "102.197.178.0/24"
+    "102.192.167.0/24"
+    "5.79.71.0/24"
     "216.218.185.0/24"
-    "206.191.152.0/24"
-    "45.14.174.0/24"
-    "195.137.167.0/24"
-    "103.58.50.1/24"
-    "25.11.10.0/24"
+    "25.117.206.0/24"
+    "192.168.0.0/16"
+    "100.64.0.0/10"
+    "198.18.0.0/15"
+    "240.0.0.0/4"
+    "192.0.0.0/24"
+    "102.195.124.0/24"
+    "102.130.88.0/24"
+    "102.65.81.0/24"
+    "102.193.10.0/24"
+    "151.139.128.0/24"
+    "205.185.208.0/24"
+    "185.121.225.0/24"
+    "102.214.134.0/24"
+    "89.35.131.0/24"
+    "102.197.178.0/24"
+    "102.192.167.0/24"
+    "5.79.71.0/24"
+    "216.218.185.0/24"
+    "25.117.206.0/24"
 )
 
 # Function to check and install required packages
@@ -93,14 +109,6 @@ block_ip_range() {
     # Validate IP range
     if ! validate_ip_range "$ip_range"; then
         return 1
-    fi
-
-    # Block incoming traffic
-    if ! iptables -C INPUT -s "$ip_range" -j DROP &>/dev/null; then
-        iptables -I INPUT -s "$ip_range" -j DROP
-        echo -e "${GREEN}Blocked incoming traffic from $ip_range${NC}"
-    else
-        echo -e "${YELLOW}Incoming traffic from $ip_range is already blocked.${NC}"
     fi
 
     # Block forwarded traffic
@@ -156,12 +164,6 @@ whitelist_ip_range() {
 }
 remove_blocked_ip_ranges() {
     for ip_range in "${IP_RANGES[@]}"; do
-        if iptables -C INPUT -s "$ip_range" -j DROP &>/dev/null; then
-            iptables -D INPUT -s "$ip_range" -j DROP
-            echo -e "${GREEN}Blocking rule for $ip_range in INPUT has been removed${NC}"
-        else
-            echo -e "${YELLOW}No blocking rule found for $ip_range in INPUT${NC}"
-        fi
         if iptables -C FORWARD -s "$ip_range" -j DROP &>/dev/null; then
             iptables -D FORWARD -s "$ip_range" -j DROP
             echo -e "${GREEN}Blocking rule for $ip_range in FORWARD has been removed${NC}"
