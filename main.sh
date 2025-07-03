@@ -112,7 +112,7 @@ menu() {
                     echo "Aborted."
                     ;;
                 esac
-                read -p "Are you sure you want to run block_ICMP? [y/N] " answer
+                read -p "do you want to run block_ICMP? [y/N] " answer
                 
                 case "$answer" in
                   [Yy]* )
