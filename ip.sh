@@ -244,7 +244,6 @@ handle_menu_choice() {
     local choice="$1"
     case $choice in
         1)
-            echo -e "${BLUE}Blocking predefined IP ranges...${NC}"
             read -p "Configure UFW? [y/n] " answer
             
             case "$answer" in
@@ -256,6 +255,7 @@ handle_menu_choice() {
                 echo "Aborted."
                 ;;
             esac
+            echo -e "${BLUE}Blocking predefined IP ranges...${NC}"
             for ip_range in "${IP_RANGES[@]}"; do
                 block_ip_range "$ip_range" || continue
             done
