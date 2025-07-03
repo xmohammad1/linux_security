@@ -183,7 +183,7 @@ get_listening_ports() {
             {
                 split($5, a, ":"); port=a[length(a)];
                 if (port != "*" && port != "") {
-                    proto=tolower($1);   # tcp یا udp
+                    proto=tolower($1);
                     print proto, port
                 }
             }' | sort -u
