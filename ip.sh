@@ -50,6 +50,7 @@ check_requirements() {
         if [ -x "$(command -v apt-get)" ]; then
             sudo apt-get update
             sudo apt-get install -y iptables
+            sudo apt-get install iptables-persistent
         elif [ -x "$(command -v yum)" ]; then
             sudo yum install -y iptables
         else
@@ -123,6 +124,7 @@ block_ip_range() {
     else
         echo -e "${YELLOW}Outgoing traffic to $ip_range is already blocked.${NC}"
     fi
+    sudo netfilter-persistent save
 }
 
 # Function to whitelist an IP or IP range
@@ -158,6 +160,7 @@ whitelist_ip_range() {
     else
         echo -e "${YELLOW}Outgoing traffic to $ip_range is already whitelisted.${NC}"
     fi
+    sudo netfilter-persistent save
 }
 remove_blocked_ip_ranges() {
     for ip_range in "${IP_RANGES[@]}"; do
