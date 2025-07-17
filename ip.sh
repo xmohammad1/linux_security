@@ -78,6 +78,32 @@ check_ufw() {
     fi
 }
 
+# Function to save iptables rules so they persist after reboot
+save_rules() {
+    echo -e "${BLUE}Saving iptables rules for persistence...${NC}"
+    if [ -x "$(command -v apt-get)" ]; then
+        if ! dpkg -s iptables-persistent >/dev/null 2>&1; then
+            echo -e "${YELLOW}Installing iptables-persistent...${NC}"
+            DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
+        fi
+        iptables-save > /etc/iptables/rules.v4
+        ip6tables-save > /etc/iptables/rules.v6 2>/dev/null || true
+        systemctl enable netfilter-persistent >/dev/null 2>&1 || true
+    elif [ -x "$(command -v yum)" ]; then
+        if ! rpm -q iptables-services >/dev/null 2>&1; then
+            echo -e "${YELLOW}Installing iptables-services...${NC}"
+            yum install -y iptables-services
+        fi
+        iptables-save > /etc/sysconfig/iptables
+        ip6tables-save > /etc/sysconfig/ip6tables 2>/dev/null || true
+        systemctl enable iptables >/dev/null 2>&1 || true
+        if systemctl list-unit-files | grep -qw ip6tables.service; then
+            systemctl enable ip6tables >/dev/null 2>&1 || true
+        fi
+    fi
+    echo -e "${GREEN}iptables rules saved.${NC}"
+}
+
 # Function to validate IP address or CIDR notation
 validate_ip_range() {
     local ip_range="$1"
@@ -254,6 +280,7 @@ handle_menu_choice() {
                 block_ip_range "$ip_range" || continue
             done
             echo -e "${GREEN}All predefined IP ranges have been blocked.${NC}"
+            save_rules
             ;;
         2)
             while true; do
@@ -268,6 +295,7 @@ handle_menu_choice() {
                     fi
                 fi
             done
+            save_rules
             ;;
         3)
             echo -e "${BLUE}Current iptables rules:${NC}"
@@ -277,6 +305,7 @@ handle_menu_choice() {
             read -rp "Are you sure you want to clear all iptables rules? (y/n): " confirm
             if [[ "$confirm" =~ ^[Yy]$ ]]; then
                 remove_blocked_ip_ranges
+                save_rules
             else
                 echo -e "${YELLOW}Operation cancelled.${NC}"
             fi
