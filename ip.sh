@@ -133,7 +133,13 @@ block_ip_range() {
     if ! validate_ip_range "$ip_range"; then
         return 1
     fi
-
+    # Block incoming traffic
+    if ! iptables -C INPUT -s "$ip_range" -j DROP &>/dev/null; then
+        iptables -I INPUT -s "$ip_range" -j DROP
+        echo -e "${GREEN}Blocked incoming traffic from $ip_range${NC}"
+    else
+        echo -e "${YELLOW}Incoming traffic from $ip_range is already blocked.${NC}"
+    fi
     # Block forwarded traffic
     if ! iptables -C FORWARD -s "$ip_range" -j DROP &>/dev/null; then
         iptables -I FORWARD -s "$ip_range" -j DROP
@@ -187,6 +193,12 @@ whitelist_ip_range() {
 }
 remove_blocked_ip_ranges() {
     for ip_range in "${IP_RANGES[@]}"; do
+        if iptables -C INPUT -s "$ip_range" -j DROP &>/dev/null; then
+            iptables -D INPUT -s "$ip_range" -j DROP
+            echo -e "${GREEN}Blocking rule for $ip_range in INPUT has been removed${NC}"
+        else
+            echo -e "${YELLOW}No blocking rule found for $ip_range in INPUT${NC}"
+        fi
         if iptables -C FORWARD -s "$ip_range" -j DROP &>/dev/null; then
             iptables -D FORWARD -s "$ip_range" -j DROP
             echo -e "${GREEN}Blocking rule for $ip_range in FORWARD has been removed${NC}"
